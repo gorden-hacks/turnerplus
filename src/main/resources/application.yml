@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/turnerplus
+    username: turnapp
+    password: turnapp
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: VGhpcy1pcy1hLXZlcnktbG9uZy1iYXNlNjQtc2VjcmV0LWtleS1mb3ItdHVybmVycGx1cw==
+    access-token-expiration-minutes: 60
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
