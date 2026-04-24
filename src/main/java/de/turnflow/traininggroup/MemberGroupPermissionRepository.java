@@ -5,8 +5,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface MemberGroupPermissionRepository extends JpaRepository<MemberGroupPermission, Long> {
+
+
+    boolean existsByMemberIdAndTrainingGroupId(Long memberId, Long trainingGroupId);
+
+    List<MemberGroupPermission> findByMemberId(Long memberId);
+
+    List<MemberGroupPermission> findByTrainingGroupId(Long trainingGroupId);
 
     @Query("""
             select count(p) > 0

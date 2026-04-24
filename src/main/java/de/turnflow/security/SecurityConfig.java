@@ -37,14 +37,10 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/members/**")
-                        .hasAnyRole("ADMIN", "TRAINER")
-
-                        .requestMatchers("/api/v1/members/**")
-                        .hasRole("ADMIN")
-
-                        .requestMatchers("/api/v1/users/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/members/**").hasAnyRole("ADMIN", "TRAINER")
+                        .requestMatchers("/api/v1/members/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/training-groups/**").hasAnyRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

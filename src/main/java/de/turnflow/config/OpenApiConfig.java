@@ -43,6 +43,12 @@ public class OpenApiConfig {
                         .description("Trainingseinheiten"))
                 .addTagsItem(new Tag()
                         .name("Registrations")
-                        .description("An- und Abmeldungen zu Trainingseinheiten"));
+                        .description("An- und Abmeldungen zu Trainingseinheiten"))
+                .addTagsItem(new Tag()
+                        .name("Users")
+                        .description("Benutzerkonten, Rollen und Login-Zuordnung"))
+                .addTagsItem(new Tag()
+                        .name("Training Groups")
+                        .description("Trainingsgruppen, Mitglieder-Berechtigungen und Trainer-Zuordnungen"));
     }
 }
