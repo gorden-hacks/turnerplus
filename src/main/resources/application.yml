@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/turnerplus
-    username: turnapp
-    password: turnapp
+    url: jdbc:postgresql://localhost:5432/turnflow
+    username: turnflow
+    password: turnflow
 
   jpa:
     hibernate:
