@@ -49,6 +49,9 @@ public class OpenApiConfig {
                         .description("Benutzerkonten, Rollen und Login-Zuordnung"))
                 .addTagsItem(new Tag()
                         .name("Training Groups")
-                        .description("Trainingsgruppen, Mitglieder-Berechtigungen und Trainer-Zuordnungen"));
+                        .description("Trainingsgruppen, Mitglieder-Berechtigungen und Trainer-Zuordnungen"))
+                .addTagsItem(new Tag()
+                        .name("Training Sessions")
+                        .description("Trainingseinheiten, Filter und Kalenderansicht"));
     }
 }

@@ -23,7 +23,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
@@ -37,10 +37,23 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/members/**").hasAnyRole("ADMIN", "TRAINER")
-                        .requestMatchers("/api/v1/members/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/training-groups/**").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/members/**")
+                        .hasAnyRole("ADMIN", "TRAINER")
+
+                        .requestMatchers("/api/v1/members/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/v1/users/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/v1/training-groups/**")
+                        .hasAnyRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/training-sessions/**")
+                        .hasAnyRole("ADMIN", "TRAINER", "MEMBER", "PARENT")
+
+                        .requestMatchers("/api/v1/training-sessions/**")
+                        .hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -55,8 +68,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-            throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 }

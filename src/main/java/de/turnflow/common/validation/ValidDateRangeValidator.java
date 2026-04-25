@@ -4,8 +4,6 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.beans.BeanWrapperImpl;
 
-import java.time.LocalDate;
-
 public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRange, Object> {
 
     private String fromField;
@@ -19,13 +17,20 @@ public class ValidDateRangeValidator implements ConstraintValidator<ValidDateRan
 
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
-        LocalDate from = (LocalDate) new BeanWrapperImpl(value).getPropertyValue(fromField);
-        LocalDate to = (LocalDate) new BeanWrapperImpl(value).getPropertyValue(toField);
+        Object fromObj = new BeanWrapperImpl(value).getPropertyValue(fromField);
+        Object toObj = new BeanWrapperImpl(value).getPropertyValue(toField);
 
-        if (from == null || to == null) {
+        if (fromObj == null || toObj == null) {
             return true;
         }
 
-        return !to.isBefore(from);
+        if (fromObj instanceof Comparable && toObj instanceof Comparable) {
+            Comparable from = (Comparable) fromObj;
+            Comparable to = (Comparable) toObj;
+
+            return to.compareTo(from) >= 0;
+        }
+
+        return true;
     }
 }
