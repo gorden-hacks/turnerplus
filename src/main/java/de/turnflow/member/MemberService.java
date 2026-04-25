@@ -1,5 +1,6 @@
 package de.turnflow.member;
 
+import de.turnflow.common.exception.ErrorCode;
 import de.turnflow.common.exception.NotFoundException;
 import de.turnflow.member.dto.CreateMemberRequest;
 import de.turnflow.member.dto.MemberDto;
@@ -24,7 +25,7 @@ public class MemberService {
 
     public MemberDto findById(Long id) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden: " + id));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, id));
         return memberMapper.toDto(member);
     }
 
@@ -36,7 +37,7 @@ public class MemberService {
 
     public MemberDto update(Long id, UpdateMemberRequest request) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden: " + id));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, id));
 
         memberMapper.update(request, member);
 

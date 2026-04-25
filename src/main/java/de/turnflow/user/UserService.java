@@ -1,6 +1,7 @@
 package de.turnflow.user;
 
 import de.turnflow.common.exception.BusinessException;
+import de.turnflow.common.exception.ErrorCode;
 import de.turnflow.common.exception.NotFoundException;
 
 import de.turnflow.member.MemberRepository;
@@ -32,11 +33,11 @@ public class UserService {
     public UserDto create(CreateUserRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Username existiert bereits");
+            throw new BusinessException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("E-Mail existiert bereits");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         UserAccount user = UserAccount.builder()
@@ -48,7 +49,7 @@ public class UserService {
 
         if (request.getMemberId() != null) {
             Member member = memberRepository.findById(request.getMemberId())
-                    .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden"));
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, request.getMemberId() ));
             user.setMember(member);
         }
 
@@ -60,7 +61,7 @@ public class UserService {
     public UserDto update(Long id, UpdateUserRequest request) {
 
         UserAccount user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User nicht gefunden"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, id));
 
         if (request.getEmail() != null) {
             user.setEmail(request.getEmail());
@@ -72,7 +73,7 @@ public class UserService {
 
         if (request.getMemberId() != null) {
             Member member = memberRepository.findById(request.getMemberId())
-                    .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden"));
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, request.getMemberId()));
             user.setMember(member);
         }
 
@@ -85,7 +86,7 @@ public class UserService {
 
     public UserDto findById(Long id) {
         return userMapper.toDto(userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User nicht gefunden")));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, id)));
     }
 
     public Set<UserDto> findAll() {
@@ -101,11 +102,11 @@ public class UserService {
                     try {
                         return RoleName.valueOf(name);
                     } catch (IllegalArgumentException e) {
-                        throw new BusinessException("Ungültige Rolle: " + name);
+                        throw  new NotFoundException(ErrorCode.INVALID_ROLE, name);
                     }
                 })
                 .map(roleName -> roleRepository.findByName(roleName)
-                        .orElseThrow(() -> new NotFoundException("Rolle nicht gefunden: " + roleName)))
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.INVALID_ROLE, roleName)))
                 .collect(Collectors.toSet());
     }
 }

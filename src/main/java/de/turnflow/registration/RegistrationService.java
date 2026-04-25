@@ -1,6 +1,7 @@
 package de.turnflow.registration;
 
 import de.turnflow.common.exception.BusinessException;
+import de.turnflow.common.exception.ErrorCode;
 import de.turnflow.common.exception.NotFoundException;
 
 import de.turnflow.member.MemberRepository;
@@ -33,10 +34,10 @@ public class RegistrationService {
     @Transactional
     public RegistrationDto register(Long sessionId, Long memberId) {
         TrainingSession session = trainingSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new NotFoundException("Trainingseinheit nicht gefunden: " + sessionId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TRAINING_SESSION_NOT_FOUND, sessionId));
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden: " + memberId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, memberId));
 
         validateRegistrationAllowed(session, member);
 
@@ -45,7 +46,7 @@ public class RegistrationService {
                 .orElse(null);
 
         if (registration != null && registration.getStatus() == RegistrationStatus.REGISTERED) {
-            throw new BusinessException("Mitglied ist bereits angemeldet");
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_REGISTERED);
         }
 
         RegistrationStatus targetStatus = determineRegistrationStatus(session);
@@ -70,18 +71,19 @@ public class RegistrationService {
     @Transactional
     public RegistrationDto unregister(Long sessionId, Long memberId) {
         TrainingSession session = trainingSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new NotFoundException("Trainingseinheit nicht gefunden: " + sessionId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TRAINING_SESSION_NOT_FOUND, sessionId));
 
         Registration registration = registrationRepository
                 .findByTrainingSessionIdAndMemberId(sessionId, memberId)
-                .orElseThrow(() -> new NotFoundException("Anmeldung nicht gefunden"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.REGISTRATION_NOT_FOUND,
+                        "sessionId=" + sessionId + ", memberId=" + memberId));
 
         if (session.getEndTime().isBefore(OffsetDateTime.now())) {
-            throw new BusinessException("Abmeldung ist nach Trainingsende nicht mehr möglich");
+            throw new BusinessException(ErrorCode.UNREGISTER_AFTER_SESSION_END_NOT_ALLOWED);
         }
 
         if (registration.getStatus() == RegistrationStatus.CANCELLED) {
-            throw new BusinessException("Mitglied ist bereits abgemeldet");
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_REGISTERED);
         }
 
         registration.setStatus(RegistrationStatus.CANCELLED);
@@ -93,22 +95,22 @@ public class RegistrationService {
 
     private void validateRegistrationAllowed(TrainingSession session, Member member) {
         if (!member.isActive()) {
-            throw new BusinessException("Mitglied ist nicht aktiv");
+            throw new BusinessException(ErrorCode.MEMBER_INACTIVE);
         }
 
         if (session.getStatus() != TrainingSessionStatus.OPEN) {
-            throw new BusinessException("Trainingseinheit ist nicht zur Anmeldung geöffnet");
+            throw new BusinessException(ErrorCode.TRAINING_SESSION_NOT_OPEN);
         }
 
         OffsetDateTime now = OffsetDateTime.now();
 
         if (session.getEndTime().isBefore(now)) {
-            throw new BusinessException("Trainingseinheit liegt bereits in der Vergangenheit");
+            throw new BusinessException(ErrorCode.TRAINING_SESSION_IN_PAST);
         }
 
         if (session.getRegistrationDeadline() != null
                 && session.getRegistrationDeadline().isBefore(now)) {
-            throw new BusinessException("Anmeldefrist ist abgelaufen");
+            throw new BusinessException(ErrorCode.REGISTRATION_DEADLINE_EXPIRED);
         }
 
         Long groupId = session.getTrainingGroup().getId();
@@ -120,7 +122,7 @@ public class RegistrationService {
         );
 
         if (!hasPermission) {
-            throw new BusinessException("Mitglied ist für diese Trainingsgruppe nicht berechtigt");
+            throw new BusinessException(ErrorCode.MEMBER_NOT_ALLOWED_FOR_GROUP);
         }
     }
 
@@ -142,6 +144,6 @@ public class RegistrationService {
             return RegistrationStatus.WAITLIST;
         }
 
-        throw new BusinessException("Trainingseinheit ist bereits voll");
+        throw new BusinessException(ErrorCode.TRAINING_SESSION_FULL);
     }
 }

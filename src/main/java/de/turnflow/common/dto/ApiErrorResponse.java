@@ -11,6 +11,8 @@ public class ApiErrorResponse {
     private OffsetDateTime timestamp;
     private int status;
     private String error;
+    private String errorCode;
+    private String messageKey;
     private String message;
     private String path;
 }

@@ -3,6 +3,7 @@ package de.turnflow.auth;
 import de.turnflow.auth.dto.LoginRequest;
 import de.turnflow.auth.dto.LoginResponse;
 import de.turnflow.auth.dto.MeResponse;
+import de.turnflow.common.exception.ErrorCode;
 import de.turnflow.common.exception.NotFoundException;
 import de.turnflow.security.JwtService;
 import de.turnflow.user.UserRepository;
@@ -54,7 +55,7 @@ public class AuthService {
 
     public MeResponse me(String username) {
         UserAccount user = userRepository.findByUsernameOrEmail(username, username)
-                .orElseThrow(() -> new NotFoundException("Benutzer nicht gefunden: " + username));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, username));
 
         return MeResponse.builder()
                 .userId(user.getId())

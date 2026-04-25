@@ -1,8 +1,8 @@
 package de.turnflow.common.exception;
 
-public class BusinessException extends RuntimeException {
+public class BusinessException extends ApiException {
 
-    public BusinessException(String message) {
-        super(message);
+    public BusinessException(ErrorCode errorCode, Object... args) {
+        super(errorCode, args);
     }
 }

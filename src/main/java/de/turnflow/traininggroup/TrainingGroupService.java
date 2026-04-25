@@ -1,6 +1,7 @@
 package de.turnflow.traininggroup;
 
 import de.turnflow.common.exception.BusinessException;
+import de.turnflow.common.exception.ErrorCode;
 import de.turnflow.common.exception.NotFoundException;
 
 import de.turnflow.member.MemberRepository;
@@ -48,7 +49,7 @@ public class TrainingGroupService {
 
     public TrainingGroupDto create(CreateTrainingGroupRequest request) {
         if (trainingGroupRepository.existsByName(request.getName())) {
-            throw new BusinessException("Trainingsgruppe existiert bereits: " + request.getName());
+            throw new BusinessException(ErrorCode.TRAINING_GROUP_ALREADY_EXISTS, request.getName());
         }
 
         TrainingGroup group = trainingGroupMapper.toEntity(request);
@@ -61,7 +62,7 @@ public class TrainingGroupService {
         if (request.getName() != null
                 && !request.getName().equals(group.getName())
                 && trainingGroupRepository.existsByName(request.getName())) {
-            throw new BusinessException("Trainingsgruppe existiert bereits: " + request.getName());
+            throw new BusinessException(ErrorCode.TRAINING_GROUP_ALREADY_EXISTS, request.getName());
         }
 
         trainingGroupMapper.update(request, group);
@@ -75,16 +76,12 @@ public class TrainingGroupService {
 
     public MemberGroupPermissionDto addMemberPermission(CreateMemberGroupPermissionRequest request) {
         Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new NotFoundException("Mitglied nicht gefunden: " + request.getMemberId()));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, request.getMemberId()));
 
         TrainingGroup group = getGroup(request.getTrainingGroupId());
 
         if (permissionRepository.existsByMemberIdAndTrainingGroupId(member.getId(), group.getId())) {
-            throw new BusinessException("Mitglied ist dieser Trainingsgruppe bereits zugeordnet");
-        }
-
-        if (request.getValidTo() != null && request.getValidTo().isBefore(request.getValidFrom())) {
-            throw new BusinessException("validTo darf nicht vor validFrom liegen");
+            throw new BusinessException(ErrorCode.MEMBER_GROUP_PERMISSION_ALREADY_EXISTS,member.getId(), group.getId());
         }
 
         MemberGroupPermission permission = MemberGroupPermission.builder()
@@ -100,7 +97,7 @@ public class TrainingGroupService {
 
     public void removeMemberPermission(Long permissionId) {
         MemberGroupPermission permission = permissionRepository.findById(permissionId)
-                .orElseThrow(() -> new NotFoundException("Gruppenberechtigung nicht gefunden: " + permissionId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_GROUP_PERMISSION_NOT_FOUND, permissionId));
 
         permissionRepository.delete(permission);
     }
@@ -123,7 +120,7 @@ public class TrainingGroupService {
 
     public TrainerGroupAssignmentDto addTrainerAssignment(CreateTrainerGroupAssignmentRequest request) {
         UserAccount user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new NotFoundException("User nicht gefunden: " + request.getUserId()));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND, request.getUserId()));
 
         TrainingGroup group = getGroup(request.getTrainingGroupId());
 
@@ -132,11 +129,11 @@ public class TrainingGroupService {
                 .anyMatch(role -> role.getName() == RoleName.ROLE_TRAINER);
 
         if (!isTrainer) {
-            throw new BusinessException("User hat nicht die Rolle ROLE_TRAINER");
+            throw new BusinessException(ErrorCode.USER_MISSING_REQUIRED_ROLE, RoleName.ROLE_TRAINER.name());
         }
 
         if (trainerAssignmentRepository.existsByUserIdAndTrainingGroupId(user.getId(), group.getId())) {
-            throw new BusinessException("Trainer ist dieser Trainingsgruppe bereits zugeordnet");
+            throw new BusinessException(ErrorCode.TRAINER_GROUP_ASSIGNMENT_ALREADY_EXISTS);
         }
 
         TrainerGroupAssignment assignment = TrainerGroupAssignment.builder()
@@ -149,7 +146,7 @@ public class TrainingGroupService {
 
     public void removeTrainerAssignment(Long assignmentId) {
         TrainerGroupAssignment assignment = trainerAssignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new NotFoundException("Trainer-Zuordnung nicht gefunden: " + assignmentId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TRAINER_ASSIGNMENT_NOT_FOUND, assignmentId));
 
         trainerAssignmentRepository.delete(assignment);
     }
@@ -172,6 +169,6 @@ public class TrainingGroupService {
 
     private TrainingGroup getGroup(Long id) {
         return trainingGroupRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Trainingsgruppe nicht gefunden: " + id));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TRAINING_SESSION_NOT_FOUND, id));
     }
 }
