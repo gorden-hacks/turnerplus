@@ -20,6 +20,7 @@ server:
   port: 8080
 
 app:
+  timezone: Europe/Berlin
   jwt:
     secret: VGhpcy1pcy1hLXZlcnktbG9uZy1iYXNlNjQtc2VjcmV0LWtleS1mb3ItdHVybmVycGx1cw==
     access-token-expiration-minutes: 60

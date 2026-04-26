@@ -22,7 +22,8 @@ public enum ErrorCode {
     TRAINING_SESSION_IN_PAST("TRAINING_SESSION_IN_PAST", "error.trainingSession.inPast", HttpStatus.BAD_REQUEST),
     TRAINING_GROUP_ALREADY_EXISTS("TRAINING_GROUP_ALREADY_EXISTS", "error.trainingGroup.alreadyExists", HttpStatus.CONFLICT),
     TRAINING_GROUP_NOT_FOUND("TRAINING_GROUP_NOT_FOUND", "error.trainingGroup.notFound", HttpStatus.NOT_FOUND),
-
+    TRAINING_SESSION_INVALID_TIME_RANGE("TRAINING_SESSION_INVALID_TIME_RANGE", "error.trainingSession.invalidTimeRange", HttpStatus.BAD_REQUEST),
+    TRAINING_SESSION_INVALID_REGISTRATION_DEADLINE("TRAINING_SESSION_INVALID_REGISTRATION_DEADLINE", "error.trainingSession.invalidRegistrationDeadline", HttpStatus.BAD_REQUEST),
     TRAINER_ASSIGNMENT_NOT_FOUND("TRAINER_ASSIGNMENT_NOT_FOUND", "error.trainer.assignment.notFound", HttpStatus.NOT_FOUND),
     TRAINER_GROUP_ASSIGNMENT_ALREADY_EXISTS("TRAINER_GROUP_ASSIGNMENT_ALREADY_EXISTS", "error.trainer.assignment.alreadyExists", HttpStatus.CONFLICT),
 
