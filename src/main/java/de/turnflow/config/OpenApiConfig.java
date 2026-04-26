@@ -52,6 +52,9 @@ public class OpenApiConfig {
                         .description("Trainingsgruppen, Mitglieder-Berechtigungen und Trainer-Zuordnungen"))
                 .addTagsItem(new Tag()
                         .name("Training Sessions")
-                        .description("Trainingseinheiten, Filter und Kalenderansicht"));
+                        .description("Trainingseinheiten, Filter und Kalenderansicht"))
+                .addTagsItem(new Tag()
+                        .name("Me")
+                        .description("Personalisierte Endpunkte für den eingeloggten Benutzer"));
     }
 }

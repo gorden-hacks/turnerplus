@@ -7,6 +7,7 @@ import de.turnflow.common.exception.NotFoundException;
 import de.turnflow.common.mapper.PageMapper;
 import de.turnflow.registration.RegistrationCountProjection;
 import de.turnflow.registration.RegistrationRepository;
+import de.turnflow.registration.entity.Registration;
 import de.turnflow.registration.entity.RegistrationStatus;
 import de.turnflow.session.dto.*;
 import de.turnflow.session.entity.TrainingSession;
@@ -15,6 +16,9 @@ import de.turnflow.session.mapper.TrainingSessionMapper;
 import de.turnflow.session.mapper.TrainingSessionProjectionMapper;
 import de.turnflow.traininggroup.TrainingGroupRepository;
 import de.turnflow.traininggroup.entity.TrainingGroup;
+import de.turnflow.user.UserRepository;
+import de.turnflow.user.UserService;
+import de.turnflow.user.entity.UserAccount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -42,6 +46,7 @@ public class TrainingSessionService {
     private final TrainingGroupRepository trainingGroupRepository;
     private final RegistrationRepository registrationRepository;
     private final TrainingSessionMapper trainingSessionMapper;
+    private final UserRepository userRepository;
     private final TrainingSessionProjectionMapper projectionMapper;
 
     @Value("${app.timezone:Europe/Berlin}")
@@ -105,6 +110,61 @@ public class TrainingSessionService {
     public TrainingSessionDto findById(Long id) {
         TrainingSession session = getSession(id);
         return toDtoWithCounts(session);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyTrainingSessionDto> findMyTrainingSessions(
+            Long userId,
+            OffsetDateTime from,
+            OffsetDateTime to
+    ) {
+        UserAccount user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND, userId));
+
+        if (user.getMember() == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_LINKED_TO_MEMBER);
+        }
+
+        Long memberId = user.getMember().getId();
+
+        List<TrainingSession> sessions =
+                trainingSessionRepository.findVisibleForMember(memberId, from, to);
+
+        List<Long> sessionIds = sessions.stream()
+                .map(TrainingSession::getId)
+                .toList();
+
+        Map<Long, RegistrationStatus> myStatuses = registrationRepository
+                .findByMemberIdAndTrainingSessionIdIn(memberId, sessionIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> r.getTrainingSession().getId(),
+                        Registration::getStatus
+                ));
+
+        Map<Long, RegistrationCountProjection> countsBySessionId = loadCounts(sessions);
+
+        return sessions.stream()
+                .map(session -> {
+                    RegistrationCountProjection counts = countsBySessionId.get(session.getId());
+
+                    return MyTrainingSessionDto.builder()
+                            .id(session.getId())
+                            .trainingGroupId(session.getTrainingGroup().getId())
+                            .trainingGroupName(session.getTrainingGroup().getName())
+                            .title(session.getTitle())
+                            .location(session.getLocation())
+                            .startTime(session.getStartTime())
+                            .endTime(session.getEndTime())
+                            .registrationDeadline(session.getRegistrationDeadline())
+                            .maxParticipants(session.getMaxParticipants())
+                            .registeredCount(counts != null ? counts.getRegisteredCount() : 0)
+                            .waitlistCount(counts != null ? counts.getWaitlistCount() : 0)
+                            .status(session.getStatus())
+                            .myRegistrationStatus(myStatuses.get(session.getId()))
+                            .build();
+                })
+                .toList();
     }
 
     public TrainingSessionDto create(CreateTrainingSessionRequest request) {

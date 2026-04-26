@@ -124,4 +124,27 @@ public interface TrainingSessionRepository extends JpaRepository<TrainingSession
             @Param("registeredStatus") RegistrationStatus registeredStatus,
             @Param("waitlistStatus") RegistrationStatus waitlistStatus
     );
+
+    @Query("""
+        select s
+        from TrainingSession s
+        join fetch s.trainingGroup g
+        where exists (
+            select 1
+            from MemberGroupPermission p
+            where p.member.id = :memberId
+              and p.trainingGroup.id = g.id
+              and p.active = true
+              and p.validFrom <= current_date
+              and (p.validTo is null or p.validTo >= current_date)
+        )
+          and (:from is null or s.endTime >= :from)
+          and (:to is null or s.startTime <= :to)
+        order by s.startTime asc
+        """)
+    List<TrainingSession> findVisibleForMember(
+            Long memberId,
+            OffsetDateTime from,
+            OffsetDateTime to
+    );
 }

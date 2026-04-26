@@ -33,6 +33,7 @@ public enum ErrorCode {
 
     USER_NOT_FOUND("USER_NOT_FOUND", "error.user.notFound", HttpStatus.NOT_FOUND),
     USER_MISSING_REQUIRED_ROLE("USER_MISSING_REQUIRED_ROLE", "error.user.missingRequiredRole", HttpStatus.BAD_REQUEST),
+    USER_NOT_LINKED_TO_MEMBER("USER_NOT_LINKED_TO_MEMBER", "error.user.notLinkedToMember", HttpStatus.BAD_REQUEST),
     USERNAME_ALREADY_EXISTS("USERNAME_ALREADY_EXISTS", "error.user.usernameAlreadyExists", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "error.user.emailAlreadyExists", HttpStatus.CONFLICT),
     INVALID_ROLE("INVALID_ROLE", "error.role.invalid", HttpStatus.BAD_REQUEST);

@@ -36,4 +36,9 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             @Param("registeredStatus") RegistrationStatus registeredStatus,
             @Param("waitlistStatus") RegistrationStatus waitlistStatus
     );
+
+    List<Registration> findByMemberIdAndTrainingSessionIdIn(
+            Long memberId,
+            Collection<Long> trainingSessionIds
+    );
 }
