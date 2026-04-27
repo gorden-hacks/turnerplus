@@ -17,7 +17,6 @@ import de.turnflow.session.mapper.TrainingSessionProjectionMapper;
 import de.turnflow.traininggroup.TrainingGroupRepository;
 import de.turnflow.traininggroup.entity.TrainingGroup;
 import de.turnflow.user.UserRepository;
-import de.turnflow.user.UserService;
 import de.turnflow.user.entity.UserAccount;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -127,8 +126,15 @@ public class TrainingSessionService {
 
         Long memberId = user.getMember().getId();
 
-        List<TrainingSession> sessions =
-                trainingSessionRepository.findVisibleForMember(memberId, from, to);
+        Specification<TrainingSession> spec = Specification
+                .where(TrainingSessionSpecifications.visibleForMember(memberId))
+                .and(TrainingSessionSpecifications.endsAfterOrAt(from))
+                .and(TrainingSessionSpecifications.startsBeforeOrAt(to));
+
+        List<TrainingSession> sessions = trainingSessionRepository.findAll(
+                spec,
+                Sort.by(Sort.Direction.ASC, "startTime")
+        );
 
         List<Long> sessionIds = sessions.stream()
                 .map(TrainingSession::getId)
@@ -146,7 +152,27 @@ public class TrainingSessionService {
 
         return sessions.stream()
                 .map(session -> {
+                    RegistrationStatus myStatus = myStatuses.get(session.getId());
+
                     RegistrationCountProjection counts = countsBySessionId.get(session.getId());
+
+                    long registeredCount = counts != null ? counts.getRegisteredCount() : 0;
+                    long waitlistCount = counts != null ? counts.getWaitlistCount() : 0;
+
+                    TrainingSessionActionDecision registerDecision =
+                            TrainingSessionActionDecision.forRegister(
+                                    session,
+                                    user.getMember().isActive(),
+                                    true,
+                                    myStatus,
+                                    registeredCount
+                            );
+
+                    TrainingSessionActionDecision unregisterDecision =
+                            TrainingSessionActionDecision.forUnregister(
+                                    session,
+                                    myStatus
+                            );
 
                     return MyTrainingSessionDto.builder()
                             .id(session.getId())
@@ -158,10 +184,14 @@ public class TrainingSessionService {
                             .endTime(session.getEndTime())
                             .registrationDeadline(session.getRegistrationDeadline())
                             .maxParticipants(session.getMaxParticipants())
-                            .registeredCount(counts != null ? counts.getRegisteredCount() : 0)
-                            .waitlistCount(counts != null ? counts.getWaitlistCount() : 0)
+                            .registeredCount(registeredCount)
+                            .waitlistCount(waitlistCount)
                             .status(session.getStatus())
-                            .myRegistrationStatus(myStatuses.get(session.getId()))
+                            .myRegistrationStatus(myStatus)
+                            .canRegister(registerDecision.allowed())
+                            .registerDisabledReason(registerDecision.reason())
+                            .canUnregister(unregisterDecision.allowed())
+                            .unregisterDisabledReason(unregisterDecision.reason())
                             .build();
                 })
                 .toList();

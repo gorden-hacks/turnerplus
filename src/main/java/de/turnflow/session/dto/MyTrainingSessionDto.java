@@ -1,6 +1,7 @@
 package de.turnflow.session.dto;
 
 import de.turnflow.registration.entity.RegistrationStatus;
+import de.turnflow.session.entity.TrainingSessionActionDisabledReason;
 import de.turnflow.session.entity.TrainingSessionStatus;
 import lombok.*;
 
@@ -29,6 +30,11 @@ public class MyTrainingSessionDto {
     private long waitlistCount;
 
     private TrainingSessionStatus status;
-
     private RegistrationStatus myRegistrationStatus;
+
+    private boolean canRegister;
+    private boolean canUnregister;
+
+    private TrainingSessionActionDisabledReason registerDisabledReason;
+    private TrainingSessionActionDisabledReason unregisterDisabledReason;
 }

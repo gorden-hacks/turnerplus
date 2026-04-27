@@ -13,6 +13,7 @@ public enum ErrorCode {
     MEMBER_ALREADY_REGISTERED("MEMBER_ALREADY_REGISTERED", "error.registration.memberAlreadyRegistered", HttpStatus.CONFLICT),
     MEMBER_INACTIVE("MEMBER_INACTIVE", "error.member.inactive", HttpStatus.BAD_REQUEST),
     MEMBER_NOT_ALLOWED_FOR_GROUP("MEMBER_NOT_ALLOWED_FOR_GROUP", "error.member.notAllowedForGroup", HttpStatus.BAD_REQUEST),
+    MEMBER_ALREADY_WAITLISTED("MEMBER_ALREADY_WAITLISTED", "error.registration.memberAlreadyWaitlisted", HttpStatus.CONFLICT),
     MEMBER_GROUP_PERMISSION_ALREADY_EXISTS("MEMBER_GROUP_PERMISSION_ALREADY_EXISTS", "error.memberGroupPermission.alreadyExists", HttpStatus.CONFLICT),
     MEMBER_GROUP_PERMISSION_NOT_FOUND("MEMBER_GROUP_PERMISSION_NOT_FOUND", "error.memberGroupPermission.notFound", HttpStatus.NOT_FOUND),
 
@@ -29,6 +30,7 @@ public enum ErrorCode {
 
     REGISTRATION_NOT_FOUND("REGISTRATION_NOT_FOUND", "error.registration.notFound", HttpStatus.NOT_FOUND),
     REGISTRATION_DEADLINE_EXPIRED("REGISTRATION_DEADLINE_EXPIRED", "error.registration.deadlineExpired", HttpStatus.BAD_REQUEST),
+    REGISTRATION_ALREADY_CANCELLED("REGISTRATION_ALREADY_CANCELLED", "error.registration.alreadyCancelled", HttpStatus.CONFLICT),
     UNREGISTER_AFTER_SESSION_END_NOT_ALLOWED("UNREGISTER_AFTER_SESSION_END_NOT_ALLOWED", "error.registration.unregisterAfterSessionEndNotAllowed", HttpStatus.BAD_REQUEST),
 
     USER_NOT_FOUND("USER_NOT_FOUND", "error.user.notFound", HttpStatus.NOT_FOUND),

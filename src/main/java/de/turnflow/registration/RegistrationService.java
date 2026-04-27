@@ -10,6 +10,7 @@ import de.turnflow.registration.dto.RegistrationDto;
 import de.turnflow.registration.entity.Registration;
 import de.turnflow.registration.entity.RegistrationStatus;
 import de.turnflow.registration.mapper.RegistrationMapper;
+import de.turnflow.session.TrainingSessionActionDecision;
 import de.turnflow.session.TrainingSessionRepository;
 import de.turnflow.session.entity.TrainingSession;
 import de.turnflow.session.entity.TrainingSessionStatus;
@@ -45,9 +46,13 @@ public class RegistrationService {
                 .findByTrainingSessionIdAndMemberId(sessionId, memberId)
                 .orElse(null);
 
-        if (registration != null && registration.getStatus() == RegistrationStatus.REGISTERED) {
-            throw new BusinessException(ErrorCode.MEMBER_ALREADY_REGISTERED);
-        }
+        TrainingSessionActionDecision.forRegister(
+                session,
+                member.isActive(),
+                hasGroupPermission(session, member),
+                registration != null ? registration.getStatus() : null,
+                countRegistered(session)
+        ).throwIfDeniedForRegister();
 
         RegistrationStatus targetStatus = determineRegistrationStatus(session);
 
@@ -78,19 +83,31 @@ public class RegistrationService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.REGISTRATION_NOT_FOUND,
                         "sessionId=" + sessionId + ", memberId=" + memberId));
 
-        if (session.getEndTime().isBefore(OffsetDateTime.now())) {
-            throw new BusinessException(ErrorCode.UNREGISTER_AFTER_SESSION_END_NOT_ALLOWED);
-        }
-
-        if (registration.getStatus() == RegistrationStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.MEMBER_ALREADY_REGISTERED);
-        }
+        TrainingSessionActionDecision.forUnregister(
+                session,
+                registration.getStatus()
+        ).throwIfDeniedForUnregister();
 
         registration.setStatus(RegistrationStatus.CANCELLED);
         registration.setCancelledAt(OffsetDateTime.now());
 
         Registration saved = registrationRepository.save(registration);
         return registrationMapper.toDto(saved);
+    }
+
+    private boolean hasGroupPermission(TrainingSession session, Member member) {
+        return permissionRepository.hasValidPermission(
+                member.getId(),
+                session.getTrainingGroup().getId(),
+                LocalDate.now()
+        );
+    }
+
+    private long countRegistered(TrainingSession session) {
+        return registrationRepository.countByTrainingSessionIdAndStatus(
+                session.getId(),
+                RegistrationStatus.REGISTERED
+        );
     }
 
     private void validateRegistrationAllowed(TrainingSession session, Member member) {
